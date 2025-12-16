@@ -1,0 +1,81 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[left=1.4cm,right=1.4cm,top=1.8cm,bottom=1.8cm]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{tabularx}
+\usepackage{siunitx}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+\title{\textbf{Performance Engineering of a 1D Heat Transfer Simulation}}
+\author{ }
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Problem 1: Analysis of Initial Code Versions}
+
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\textwidth}{l Y Y Y}
+\toprule
+\textbf{Version} &
+\textbf{Data Layout} &
+\textbf{Observed Performance} &
+\textbf{Performance Explanation} \\
+\midrule
+
+HeatBase &
+2D array $U[x][t]$, non-contiguous memory access in inner loop &
+\begin{tabular}[t]{@{}l@{}}
+11.9 s runtime \\
+48.8 cycles/stencil \\
+$\sim 3.8$ cache misses/stencil
+\end{tabular}
+&
+Poor cache re-use : data accesses generate cache misses, which lowers IPC. \\
+\midrule
+
+HeatBaseT &
+2D array $U[t][x]$, contiguous spatial access &
+\begin{tabular}[t]{@{}l@{}}
+1.04 s runtime \\
+1.63 cycles/stencil \\
+$\sim 8\times10^{-4}$ cache misses/stencil
+\end{tabular}
+&
+Transposing the matrix addresses the cache re-use issues of the BASE version. \\
+\midrule
+
+Heat &
+Two 1D arrays with double buffering &
+\begin{tabular}[t]{@{}l@{}}
+0.33 s runtime \\
+1.43 cycles/stencil \\
+$\sim 10^{-6}$ cache misses/stencil
+\end{tabular}
+&
+One further optimization : using a buffer swap we keep the working line for one iteration to another to avoid an extra memory accesses. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+
+
+\end{document}
+

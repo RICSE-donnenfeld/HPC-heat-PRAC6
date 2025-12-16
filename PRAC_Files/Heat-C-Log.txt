@@ -1,0 +1,200 @@
++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++   C Version    +++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+$ module add gcc/13.2.1     <<--- IMPORTANT! Configure Linux terminal to use last version of GCC compiler
+
+$ gcc -Ofast -march=native HeatBase.c -o BASE
+$ gcc -Ofast -march=native HeatBaseT.c -o BASET
+$ gcc -Ofast -march=native Heat.c -o HEAT
+
+$ perf stat -e instructions,cycles,cache-references,cache-misses BASE
+
+Heat Diffusion (C): N= 100000 and T= 10000
+
+CheckSum = 55.839847564697
+
+ Performance counter stats for 'BASE':
+
+    14.049.711.930      cpu_core/instructions:u/
+    48.799.811.615      cpu_core/cycles:u/
+     6.162.145.094      cpu_core/cache-references:u/
+     3.828.428.685      cpu_core/cache-misses:u/
+
+      11,878140783 seconds time elapsed
+
+      10,961008000 seconds user
+       0,888634000 seconds sys
+
+
+$ perf stat -e instructions,cycles,cache-references,cache-misses BASET
+
+Heat Diffusion (C): N= 100000 and T= 10000
+
+CheckSum = 55.839847564697
+
+ Performance counter stats for 'BASET':
+
+     2.505.463.780      cpu_core/instructions:u/
+     1.634.556.752      cpu_core/cycles:u/
+         5.597.619      cpu_core/cache-references:u/
+           804.625      cpu_core/cache-misses:u/
+
+       1,039882855 seconds time elapsed
+
+       0,314466000 seconds user
+       0,723786000 seconds sys
+
+
+$ perf stat -e instructions,cycles,cache-references,cache-misses HEAT
+
+Heat Diffusion (C): N= 100000 and T= 10000
+**************** VERSION 1 *****************
+
+CheckSum = 55.839847564697
+
+ Performance counter stats for 'HEAT':
+
+     3.125.734.789      cpu_core/instructions:u/
+     1.431.129.654      cpu_core/cycles:u/
+            11.619      cpu_core/cache-references:u/
+             1.025      cpu_core/cache-misses:u/
+
+       0,335862373 seconds time elapsed
+
+       0,333522000 seconds user
+       0,000997000 seconds sys
+
+
+
+***** BASE program *********
+
+$ perf record BASE
+Heat Diffusion (C): N= 100000 and T= 10000
+
+CheckSum = 55.839847564697
+[ perf record: Woken up 9 times to write data ]
+[ perf record: Captured and wrote 2,172 MB perf.data (47413 samples) ]
+
+$ perf report
+
+Samples: 47K of event 'cpu_core/cycles:u/', Event count (approx.): 48444310713
+Overhead  Command  Shared Object     Symbol
+  97,64%  BASE     BASE              [.] main
+   2,09%  BASE     libc-2.28.so      [.] __memset_avx2_unaligned_erms
+   0,10%  BASE     libc-2.28.so      [.] _int_malloc
+   0,06%  BASE     [unknown]         [k] 0xffffffff8f000b87
+   0,04%  BASE     libc-2.28.so      [.] _int_free
+   0,04%  BASE     libc-2.28.so      [.] sysmalloc
+  ...
+
+
+ a0:┌─→mov          (%rax),%r13
+    │  mov          0x10(%rax),%r11
+    │  add          $0x8,%rax
+    │  mov          (%rax),%rcx
+    │  cmp          %rax,%r10
+    │  vmovss       0x0(%r13,%rdx,1),%xmm0
+    │  vaddss       (%r11,%rdx,1),%xmm0,%xmm0
+    │  vcvtss2sd    (%rcx,%rdx,1),%xmm4,%xmm1
+    │  vcvtss2sd    %xmm0,%xmm0,%xmm0
+    │  vfnmadd231sd %xmm3,%xmm1,%xmm0
+    │  vfmadd132sd  %xmm2,%xmm1,%xmm0
+    │  vcvtsd2ss    %xmm0,%xmm0,%xmm0
+    │  vmovss       %xmm0,(%rcx,%rsi,1)
+    └──jne          a0      
+
+
+***** BASET program *********
+
+$ perf record BASET
+Heat Diffusion (C): N= 100000 and T= 10000
+
+CheckSum = 55.8398437564697
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 0,190 MB perf.data (4119 samples) ]
+
+
+$ perf report
+
+Samples: 4K of event 'cpu_core/cycles:u/', Event count (approx.): 1715900787
+Overhead  Command  Shared Object     Symbol
+  97,12%  BASET    BASET             [.] main
+   1,87%  BASET    [unknown]         [k] 0xffffffff8f000b87
+   0,40%  BASET    libc-2.28.so      [.] sysmalloc
+
+
+200:┌─→vmovups      0x4(%rax,%rsi,1),%ymm0
+    │  vcvtps2pd    0x4(%rax,%rsi,1),%ymm12
+    │  vextractf128 $0x1,%ymm0,%xmm11
+    │  vmovups      (%rax,%rsi,1),%ymm0
+    │  vaddps       0x8(%rax,%rsi,1),%ymm0,%ymm0
+    │  vcvtps2pd    %xmm11,%ymm11
+    │  vcvtps2pd    %xmm0,%ymm10
+    │  vextractf128 $0x1,%ymm0,%xmm0
+    │  vfnmadd231pd %ymm9,%ymm12,%ymm10
+    │  vcvtps2pd    %xmm0,%ymm0
+    │  vfnmadd231pd %ymm9,%ymm11,%ymm0
+    │  vfmadd132pd  %ymm8,%ymm12,%ymm10
+    │  vfmadd132pd  %ymm8,%ymm11,%ymm0
+    │  vcvtpd2ps    %ymm10,%xmm10
+    │  vcvtpd2ps    %ymm0,%xmm0
+    │  vinsertf128  $0x1,%xmm0,%ymm10,%ymm0
+    │  vmovups      %ymm0,0x4(%rdx,%rsi,1)
+    │  add          $0x20,%rsi
+    ├──cmp          %rsi,%r8
+    └──jne          200 
+
+
+***** HEAT program *********
+
+$ perf record HEAT
+**************** VERSION 1 *****************
+Heat Diffusion (C): N= 100000 and T= 10000
+
+CheckSum = 55.8398437564697
+[ perf record: Woken up 1 times to write data ]
+
+
+$ perf report
+
+Samples: 1K of event 'cpu_core/cycles:u/', Event count (approx.): 1407146833
+Overhead  Command  Shared Object  Symbol
+  99,94%  HEAT     HEAT           [.] Heat_V1
+   0,06%  HEAT     ld-2.28.so     [.] _dl_map_object-deps
+   0,00%  HEAT     ld-2.28.so     [.] _dl_start
+   0,00%  HEAT     ld-2.28.so     [.] _start
+
+<<--- There are two loops consuming more than 99%
+
+<< First LOOP:  0.33 + 0.13 + ... + 6.97 = 75.09 % >>
+
+  0,33 │1c0:┌─→vmovups      0x4(%rax,%rcx,1),%ymm6
+  0,13 │    │  vcvtps2pd    0x4(%rax,%rcx,1),%ymm10
+  8,16 │    │  vextractf128 $0x1,%ymm6,%xmm9      
+  1,96 │    │  vmovups      (%rax,%rcx,1),%ymm6   
+  0,67 │    │  vaddps       0x8(%rax,%rcx,1),%ymm6,%ymm0
+  8,80 │    │  vcvtps2pd    %xmm9,%ymm9   
+  1,41 │    │  vcvtps2pd    %xmm0,%ymm6   
+  8,32 │    │  vextractf128 $0x1,%ymm0,%xmm0
+  0,54 │    │  vfnmadd231pd %ymm8,%ymm10,%ymm6 
+  0,13 │    │  vcvtps2pd    %xmm0,%ymm0    
+  8,56 │    │  vfnmadd231pd %ymm8,%ymm9,%ymm0 
+  0,13 │    │  vfmadd132pd  %ymm7,%ymm10,%ymm6
+  1,20 │    │  vfmadd132pd  %ymm7,%ymm9,%ymm0 
+  9,91 │    │  vcvtpd2ps    %ymm6,%xmm6       
+  2,20 │    │  vcvtpd2ps    %ymm0,%xmm0       
+  7,21 │    │  vinsertf128  $0x1,%xmm0,%ymm6,%ymm0
+  8,45 │    │  vmovups      %ymm0,0x4(%rsi,%rcx,1)
+       │    │  add          $0x20,%rcx 
+       │    ├──cmp          %r10,%rcx 
+  6,97 │    └──jne          1c0                   
+
+
+<< SECOND LOOP: 0.75 + 17.06 + 7.10 = 24.91 % >>
+
+  0,75 │390:┌─→vmovups      (%rsi,%rcx,1),%ymm7
+ 17,06 │    │  vmovups      %ymm7,(%rax,%rcx,1)
+       │    │  add          $0x20,%rcx
+       │    ├──cmp          %rcx,%r9
+  7,10 │    └──jne          390  

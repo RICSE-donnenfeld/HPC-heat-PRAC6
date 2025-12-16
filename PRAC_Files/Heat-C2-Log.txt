@@ -1,0 +1,104 @@
+************************************************
+--> Include versions V2, V3 & V4 on file Heat.c
+************************************************
+
+$ module add gcc/13.2.1     <<--- IMPORTANT! Configure Linux terminal to use last version of GCC compiler
+
+$ gcc -Ofast -march=native Heat.c -o HEAT
+
+$ perf stat -e instructions,cycles,cache-references,cache-misses HEAT 5000 2000000 4
+Heat Diffusion (C): N= 5000 and T= 2000000
+**************** VERSION 4 *****************
+
+CheckSum = 578.152465820312
+
+ Performance counter stats for 'HEAT 5000 2000000 4':
+
+    10.042.229.043      cpu_core/instructions:u/
+     2.674.234.642      cpu_core/cycles:u/
+             6.445      cpu_core/cache-references:u/
+               806      cpu_core/cache-misses:u/
+
+       0,626118846 seconds time elapsed
+
+       0,623401000 seconds user
+       0,000997000 seconds sys
+
+
+$ perf stat -e instructions,cycles,cache-references,cache-misses HEAT 10000 1000000 4
+Heat Diffusion (C): N= 10000 and T= 1000000
+**************** VERSION 4 *****************
+
+CheckSum = 412.971374511719
+
+ Performance counter stats for 'HEAT 10000 1000000 4':
+
+    10.021.231.918      cpu_core/instructions:u/
+     3.865.480.927      cpu_core/cycles:u/
+             6.866      cpu_core/cache-references:u/
+               979      cpu_core/cache-misses:u/
+
+       0,903094082 seconds time elapsed
+
+       0,901132000 seconds user
+       0,000970000 seconds sys
+
+
+<<-- Elapsed time is between 1.03 seconds and 1.21 seconds: we present the case with minimum elapsed time
+
+$ perf stat -e instructions,cycles,cache-references,cache-misses HEAT2 100000 100000 4
+Heat Diffusion (C): N= 100000 and T= 100000
+**************** VERSION 4 *****************
+
+CheckSum = 141.423049926758
+
+ Performance counter stats for 'HEAT2 100000 100000 4':
+
+    10.002.377.218      cpu_core/instructions:u/
+     4.404.543.622      cpu_core/cycles:u/
+        21.585.394      cpu_core/cache-references:u/
+             1.339      cpu_core/cache-misses:u/
+
+       1,029025943 seconds time elapsed
+
+       1,026723000 seconds user
+       0,000985000 seconds sys
+
+
+
+$ perf stat -e instructions,cycles,cache-references,cache-misses HEAT2 1000000 10000 4
+Heat Diffusion (C): N= 1000000 and T= 10000
+**************** VERSION 4 *****************
+
+CheckSum = 55.842247009277
+
+ Performance counter stats for 'HEAT2 1000000 10000 4':
+
+    10.000.938.637      cpu_core/instructions:u/
+     6.554.020.656      cpu_core/cycles:u/
+     1.250.745.932      cpu_core/cache-references:u/
+            64.622      cpu_core/cache-misses:u/
+
+       1,533320385 seconds time elapsed
+
+       1,530224000 seconds user
+       0,000998000 seconds sys
+
+
+$ perf stat -e instructions,cycles,cache-references,cache-misses HEAT2 10000000 1000 4
+Heat Diffusion (C): N= 10000000 and T= 1000
+**************** VERSION 4 *****************
+
+CheckSum = 29.190963745117
+
+ Performance counter stats for 'HEAT2 10000000 1000 4':
+
+    10.005.250.834      cpu_core/instructions:u/
+    13.076.044.159      cpu_core/cycles:u/
+     1.250.823.428      cpu_core/cache-references:u/
+       872.354.721      cpu_core/cache-misses:u/
+
+       3,064538393 seconds time elapsed
+
+       3,050121000 seconds user
+       0,007965000 seconds sys

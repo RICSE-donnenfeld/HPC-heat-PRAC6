@@ -1,0 +1,3 @@
+gcc -Ofast -march=native PRAC_Files/HeatBase.c -o outbin/BASE
+gcc -Ofast -march=native PRAC_Files/HeatBaseT.c -o outbin/BASET
+gcc -Ofast -march=native PRAC_Files/Heat.c -o outbin/HEAT
